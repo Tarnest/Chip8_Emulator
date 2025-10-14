@@ -20,6 +20,8 @@ static SDL_Renderer *renderer = NULL;
 
 std::shared_ptr<Chip8> chip8;
 
+int counter = 0;
+
 /* This function runs once at startup. */
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 {
@@ -59,6 +61,22 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 /* This function runs once per frame, and is the heart of the program. */
 SDL_AppResult SDL_AppIterate(void *appstate)
 {
+    uint64_t start = SDL_GetPerformanceCounter();
+    
+    // Do Loop
+
+    // fetch
+
+    // decode
+
+    // execute
+
+    uint64_t end = SDL_GetPerformanceCounter();
+    float elapsedMS = (end - start) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
+    
+    // Cap to 60 FPS
+	SDL_Delay(floor(16.666f - elapsedMS));
+    
     return SDL_APP_CONTINUE;  /* carry on with the program! */
 }
 
