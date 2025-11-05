@@ -1,8 +1,10 @@
 #include <array>
 #include <stack>
 #include <iomanip>
-#include <iostream>
 #include <SDL3/SDL.h>
+#include <fstream>
+#include <string>
+#include <iostream>
 
 class Chip8
 {
@@ -27,32 +29,18 @@ class Chip8
 
         std::array<uint8_t, 4096> memory;
         int program_counter;
-        uint16_t index_register;
+        std::shared_ptr<uint16_t> index_register;
         std::stack<uint16_t> instructions;
         uint8_t delay_timer;
         uint8_t sound_timer;
-    
-        void load_font()
-        {
-            int memory_location = 0x50; // arbitrary starting location, based on tradition
+        std::shared_ptr<std::fstream> file;
+        uint8_t current_instructions[2];
 
-            for (auto font : fonts)
-            {
-                for (int i = 0; i < font.size(); i++)
-                {
-                    memory[memory_location] = font[i];
-                    memory_location++;                  
-                }
-
-                memory_location++;
-            }
-        }
+        void load_font();
 
     public:
-
-        Chip8::Chip8()
-        {
-            program_counter = 0;
-            load_font();
-        }
+        void fetch();
+        void decode_and_execute();
+        Chip8(const std::string &path);
+        ~Chip8();
 };

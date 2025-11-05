@@ -12,15 +12,15 @@
 
 #include <string>
 #include <memory>
-#include "../include/chip8.h"
+#include "chip8.h"
 
 /* We will use this renderer to draw into this window every frame. */
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
 
-std::shared_ptr<Chip8> chip8;
+const std::string path = "C:\\Users\\trist\\Documents\\VSCode Projects\\EmuDev\\Chip8\\rom\\IBM Logo.ch8";
 
-int counter = 0;
+std::shared_ptr<Chip8> chip8;
 
 /* This function runs once at startup. */
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
@@ -44,7 +44,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     *  
     */
     
-    chip8 = std::make_shared<Chip8>();
+    chip8 = std::make_shared<Chip8>(path);
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
 }
@@ -66,10 +66,10 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     // Do Loop
 
     // fetch
+    chip8->fetch();
 
-    // decode
-
-    // execute
+    // decode and execute
+    chip8->decode_and_execute();
 
     uint64_t end = SDL_GetPerformanceCounter();
     float elapsedMS = (end - start) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
