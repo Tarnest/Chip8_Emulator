@@ -32,8 +32,10 @@ void Chip8::fetch()
 
 void Chip8::decode_and_execute()
 {
-    // ! FIND OTHER NIBBLES
-    int nibbles[4] = {current_instructions[0] >> 4, 0, 0, 0};
+    int nibble_2 = current_instructions[0] - ((current_instructions[0] >> 4) << 4);
+    int nibble_4 = current_instructions[1] - ((current_instructions[1] >> 4) << 4);
+    
+    int nibbles[4] = {current_instructions[0] >> 4, nibble_2, current_instructions[1] >> 4, nibble_4};
     
     switch(nibbles[0])
     {
