@@ -29,7 +29,7 @@ class Chip8
 
         std::array<uint8_t, 4096> memory;
         int program_counter;
-        std::shared_ptr<uint16_t> index_register;
+        uint16_t index_register;
         std::stack<uint16_t> instructions;
         uint8_t delay_timer;
         uint8_t sound_timer;

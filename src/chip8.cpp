@@ -18,32 +18,32 @@ void Chip8::load_font()
 
 void Chip8::clear_screen()
 {
-
+    SDL_Log("Clear!");
 }
 
 void Chip8::jump(int NNN)
 {
-
+    program_counter = NNN;
 }
 
 void Chip8::set_x(int x, int NN)
 {
-
+    x_registers[x] = NN;
 }
 
 void Chip8::add_x(int x, int NN)
 {
-
+    x_registers[x] += NN;
 }
 
 void Chip8::set_index(int NNN)
 {
-
+    index_register = NNN;
 }
 
 void Chip8::display(int x, int y, int N)
 {
-
+    SDL_Log("Display!");
 }
 
 void Chip8::fetch()
