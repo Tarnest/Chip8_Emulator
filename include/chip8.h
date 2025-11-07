@@ -33,8 +33,10 @@ class Chip8
         std::stack<uint16_t> instructions;
         uint8_t delay_timer;
         uint8_t sound_timer;
+        std::array<uint8_t, 16> x_registers;
+        std::array<uint8_t, 16> y_registers;
         std::shared_ptr<std::fstream> file;
-        uint8_t current_instructions[2];
+        std::array<uint8_t, 2> current_instructions;
 
         void load_font();
 

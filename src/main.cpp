@@ -63,20 +63,16 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 {
     uint64_t start = SDL_GetPerformanceCounter();
     
-    // Do Loop
-
-    // fetch
     chip8->fetch();
 
-    // decode and execute
     chip8->decode_and_execute();
 
     uint64_t end = SDL_GetPerformanceCounter();
     float elapsedMS = (end - start) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
     
     // Cap to 60 FPS
-	SDL_Delay(floor(16.666f - elapsedMS));
-    
+	// ! SDL_Delay(floor(16.666f - elapsedMS));
+
     return SDL_APP_CONTINUE;  /* carry on with the program! */
 }
 

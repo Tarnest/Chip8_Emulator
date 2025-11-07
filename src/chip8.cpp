@@ -1,8 +1,4 @@
 #include "chip8.h"
-#include <bit>
-#include <bitset>
-#include <cstdint>
-#include <iostream>
 
 void Chip8::load_font()
 {
@@ -32,15 +28,19 @@ void Chip8::fetch()
 
 void Chip8::decode_and_execute()
 {
+    int nibble_1 = current_instructions[0] >> 4;
     int nibble_2 = current_instructions[0] - ((current_instructions[0] >> 4) << 4);
+    int nibble_3 = current_instructions[1] >> 4;
     int nibble_4 = current_instructions[1] - ((current_instructions[1] >> 4) << 4);
     
-    int nibbles[4] = {current_instructions[0] >> 4, nibble_2, current_instructions[1] >> 4, nibble_4};
-    
-    switch(nibbles[0])
+    // third and fourth nibbles AKA NN
+    int immediate_num = (nibble_3 << 4) + nibble_4;
+    // second, third, and fourth nibbles AKA NNN
+    int immediate_mem_addr = (nibble_2 << 8) + (nibble_3 << 4) + nibble_4;
+
+    switch(nibble_1)
     {
         case 0x0:
-            SDL_Log("Zero!");
             break;
         case 0x1:
             break;
