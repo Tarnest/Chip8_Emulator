@@ -16,6 +16,36 @@ void Chip8::load_font()
     }
 }
 
+void Chip8::clear_screen()
+{
+
+}
+
+void Chip8::jump(int NNN)
+{
+
+}
+
+void Chip8::set_x(int x, int NN)
+{
+
+}
+
+void Chip8::add_x(int x, int NN)
+{
+
+}
+
+void Chip8::set_index(int NNN)
+{
+
+}
+
+void Chip8::display(int x, int y, int N)
+{
+
+}
+
 void Chip8::fetch()
 {
     if (!file->is_open()) return;
@@ -33,16 +63,19 @@ void Chip8::decode_and_execute()
     int nibble_3 = current_instructions[1] >> 4;
     int nibble_4 = current_instructions[1] - ((current_instructions[1] >> 4) << 4);
     
-    // third and fourth nibbles AKA NN
-    int immediate_num = (nibble_3 << 4) + nibble_4;
-    // second, third, and fourth nibbles AKA NNN
-    int immediate_mem_addr = (nibble_2 << 8) + (nibble_3 << 4) + nibble_4;
+    int full_num = (current_instructions[0] << 8) + current_instructions[1];    
+    // third and fourth nibbles
+    int NN = (nibble_3 << 4) + nibble_4;
+    // second, third, and fourth nibbles AKA mem addr
+    int NNN = (nibble_2 << 8) + (nibble_3 << 4) + nibble_4;
 
     switch(nibble_1)
     {
         case 0x0:
+            clear_screen();
             break;
         case 0x1:
+            jump(NNN);
             break;
         case 0x2:
             break;
@@ -53,20 +86,24 @@ void Chip8::decode_and_execute()
         case 0x5:
             break;
         case 0x6:
+            set_x(nibble_2, NN);
             break;
         case 0x7:
+            add_x(nibble_2, NN);
             break;
         case 0x8:
             break;
         case 0x9:
             break;
         case 0xA:
+            set_index(NNN);
             break;
         case 0xB:
             break;
         case 0xC:
             break;
         case 0xD:
+            display(nibble_2, nibble_3, nibble_4);
             break;
         case 0xE:
             break;

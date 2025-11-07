@@ -39,6 +39,12 @@ class Chip8
         std::array<uint8_t, 2> current_instructions;
 
         void load_font();
+        void clear_screen(); // 0x00E0
+        void jump(int NNN); // 0x1NNN
+        void set_x(int x, int NN); // 0x6XNN
+        void add_x(int x, int NN); // 0x7XNN
+        void set_index(int NNN); // 0xANNN
+        void display(int x, int y, int N); // 0xDXYN
 
     public:
         void fetch();
