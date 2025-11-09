@@ -51,12 +51,13 @@ class Chip8
         uint8_t sound_timer;
         std::array<uint8_t, 16> registers;
         std::shared_ptr<std::fstream> file;
-        std::array<uint8_t, 2> current_instructions;
+        std::array<uint8_t, 2> current_instruction;
         SDL_Renderer *_renderer;
         pixel pixels[SCREEN_WIDTH_PIXELS][SCREEN_HEIGHT_PIXELS];
 
         void load_font();
         void load_pixels();
+        void load_file();
         bool find_bit(uint8_t &byte, int bit);
         void clear_screen(); // 0x00E0
         void jump(int NNN); // 0x1NNN

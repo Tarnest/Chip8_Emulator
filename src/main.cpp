@@ -71,7 +71,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     float elapsedMS = (end - start) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
     
     // Cap to 60 FPS
-	// ! SDL_Delay(floor(16.666f - elapsedMS));
+	// SDL_Delay(floor(16.666f - elapsedMS));
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
 }

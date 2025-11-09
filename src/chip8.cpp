@@ -26,12 +26,29 @@ void Chip8::load_pixels()
     {
         for (int j = 0; j < SCREEN_HEIGHT_PIXELS; j++)
         {
-            pixels[i][j] = pixel(i * SCREEN_WIDTH_PIXELS, j * SCREEN_HEIGHT_PIXELS);
+            pixels[i][j] = pixel(i * PIXEL_SIZE, j * PIXEL_SIZE);
             SDL_RenderFillRect(_renderer, &pixels[i][j].rect);
         }
     }
 
     SDL_RenderPresent(_renderer);
+}
+
+void Chip8::load_file()
+{
+    if (!file->is_open()) return;
+
+    int current_place = 0x200;
+    std::array<uint8_t, 2> current_instructions = {0};
+    while(!file->eof())
+    {
+        std::array<uint8_t, 2> current_instructions;
+        file->read(reinterpret_cast<char*>(&current_instructions), sizeof uint16_t);
+
+        memory[current_place] = current_instructions[0];
+        memory[++current_place] = current_instructions[1];
+        current_place++;
+    }
 }
 
 bool Chip8::find_bit(uint8_t &byte, int bit)
@@ -94,15 +111,14 @@ void Chip8::display(int x, int y, int N)
 
     registers[0xF] = 0;
 
-    SDL_SetRenderDrawColor(_renderer, 0xFF, 0xFF, 0xFF, SDL_ALPHA_OPAQUE); // white
-
     for (int i = 0; i < N; i++)
     {
         if (y_coord > SCREEN_HEIGHT_PIXELS - 1)
         {
             break;
         }
-        
+
+        x_coord = registers[x] % SCREEN_WIDTH_PIXELS;   
         uint8_t current_byte = memory[index_register + i];
 
         for (int j = 0; j < 8; j++)
@@ -115,13 +131,15 @@ void Chip8::display(int x, int y, int N)
             pixel current_pixel = pixels[x_coord][y_coord];
             bool current_bit = find_bit(current_byte, j);
 
-            if (current_pixel.is_on() == current_bit && current_pixel.is_on() != false)
+            if (current_pixel.is_on() && current_bit)
             {
                 current_pixel.off();
                 SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE); // black
                 SDL_RenderFillRect(_renderer, &current_pixel.rect);
+
+                registers[0xF] = 1;
             } 
-            else
+            else if (!current_pixel.is_on() && current_bit)
             {
                 current_pixel.on();
                 SDL_SetRenderDrawColor(_renderer, 0xFF, 0xFF, 0xFF, SDL_ALPHA_OPAQUE); // white
@@ -139,22 +157,20 @@ void Chip8::display(int x, int y, int N)
 
 void Chip8::fetch()
 {
-    if (!file->is_open()) return;
-
-    file->seekg(program_counter);
-    file->read(reinterpret_cast<char*>(&current_instructions), sizeof uint16_t);
+    current_instruction.at(0) = memory.at(program_counter);
+    current_instruction.at(1) = memory.at(program_counter + 1);
 
     program_counter += 2;
 }
 
 void Chip8::decode_and_execute()
 {
-    int nibble_1 = current_instructions[0] >> 4;
-    int nibble_2 = current_instructions[0] - ((current_instructions[0] >> 4) << 4);
-    int nibble_3 = current_instructions[1] >> 4;
-    int nibble_4 = current_instructions[1] - ((current_instructions[1] >> 4) << 4);
+    int nibble_1 = current_instruction[0] >> 4;
+    int nibble_2 = current_instruction[0] - ((current_instruction[0] >> 4) << 4);
+    int nibble_3 = current_instruction[1] >> 4;
+    int nibble_4 = current_instruction[1] - ((current_instruction[1] >> 4) << 4);
     
-    int full_num = (current_instructions[0] << 8) + current_instructions[1];    
+    int full_num = (current_instruction[0] << 8) + current_instruction[1];    
     // third and fourth nibbles
     int NN = (nibble_3 << 4) + nibble_4;
     // second, third, and fourth nibbles AKA mem addr
@@ -206,14 +222,15 @@ void Chip8::decode_and_execute()
 Chip8::Chip8(const std::string &path, SDL_Renderer *_new_renderer)
 {
     registers = {0}; 
-    program_counter = 0;
+    program_counter = 0x200;
     memory = {0};
-    load_font();
     file = std::make_shared<std::fstream>();
     file->open(path, std::ios::in | std::ios::out | std::ios::binary);
     _renderer = _new_renderer;
 
+    load_font();
     load_pixels();
+    load_file();
 }
 
 Chip8::~Chip8()
