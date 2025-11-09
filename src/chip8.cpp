@@ -16,9 +16,55 @@ void Chip8::load_font()
     }
 }
 
+void Chip8::load_pixels()
+{
+    SDL_RenderClear(_renderer);
+
+    SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE); // black
+    
+    for (int i = 0; i < SCREEN_WIDTH_PIXELS; i++)
+    {
+        for (int j = 0; j < SCREEN_HEIGHT_PIXELS; j++)
+        {
+            pixels[i][j] = pixel(i * SCREEN_WIDTH_PIXELS, j * SCREEN_HEIGHT_PIXELS);
+            SDL_RenderFillRect(_renderer, &pixels[i][j].rect);
+        }
+    }
+
+    SDL_RenderPresent(_renderer);
+}
+
+bool Chip8::find_bit(uint8_t &byte, int bit)
+{
+    int increment_size = 7 - bit; // bit in this case 0 thru 7
+    
+    if (bit == 0)
+    {
+        return byte << increment_size;
+    }
+
+    int narrowed_bit = byte << increment_size;
+    int subtraction_bit = byte << increment_size + 1;
+    
+    return narrowed_bit - subtraction_bit;
+}
+
 void Chip8::clear_screen()
 {
-    SDL_Log("Clear!");
+    SDL_RenderClear(_renderer);
+
+    SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE); // black
+    
+    for (int i = 0; i < SCREEN_WIDTH_PIXELS; i++)
+    {
+        for (int j = 0; j < SCREEN_HEIGHT_PIXELS; j++)
+        {
+            pixels[i][j].off();
+            SDL_RenderFillRect(_renderer, &pixels[i][j].rect);
+        }
+    }
+
+    SDL_RenderPresent(_renderer);
 }
 
 void Chip8::jump(int NNN)
@@ -28,12 +74,12 @@ void Chip8::jump(int NNN)
 
 void Chip8::set_x(int x, int NN)
 {
-    x_registers[x] = NN;
+    registers[x] = NN;
 }
 
 void Chip8::add_x(int x, int NN)
 {
-    x_registers[x] += NN;
+    registers[x] += NN;
 }
 
 void Chip8::set_index(int NNN)
@@ -43,7 +89,52 @@ void Chip8::set_index(int NNN)
 
 void Chip8::display(int x, int y, int N)
 {
-    SDL_Log("Display!");
+    int x_coord = registers[x] % SCREEN_WIDTH_PIXELS;
+    int y_coord = registers[y] % SCREEN_HEIGHT_PIXELS;
+
+    registers[0xF] = 0;
+
+    SDL_SetRenderDrawColor(_renderer, 0xFF, 0xFF, 0xFF, SDL_ALPHA_OPAQUE); // white
+
+    for (int i = 0; i < N; i++)
+    {
+        if (y_coord > SCREEN_HEIGHT_PIXELS - 1)
+        {
+            break;
+        }
+        
+        uint8_t current_byte = memory[index_register + i];
+
+        for (int j = 0; j < 8; j++)
+        {            
+            if (x_coord > SCREEN_WIDTH_PIXELS - 1)
+            {
+                break;
+            }
+            
+            pixel current_pixel = pixels[x_coord][y_coord];
+            bool current_bit = find_bit(current_byte, j);
+
+            if (current_pixel.is_on() == current_bit && current_pixel.is_on() != false)
+            {
+                current_pixel.off();
+                SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE); // black
+                SDL_RenderFillRect(_renderer, &current_pixel.rect);
+            } 
+            else
+            {
+                current_pixel.on();
+                SDL_SetRenderDrawColor(_renderer, 0xFF, 0xFF, 0xFF, SDL_ALPHA_OPAQUE); // white
+                SDL_RenderFillRect(_renderer, &current_pixel.rect);
+            }
+
+            x_coord++;
+        }
+
+        y_coord++;
+    }
+
+    SDL_RenderPresent(_renderer);
 }
 
 void Chip8::fetch()
@@ -112,15 +203,47 @@ void Chip8::decode_and_execute()
     }
 }
 
-Chip8::Chip8(const std::string &path)
+Chip8::Chip8(const std::string &path, SDL_Renderer *_new_renderer)
 {
+    registers = {0}; 
     program_counter = 0;
+    memory = {0};
     load_font();
     file = std::make_shared<std::fstream>();
     file->open(path, std::ios::in | std::ios::out | std::ios::binary);
+    _renderer = _new_renderer;
+
+    load_pixels();
 }
 
 Chip8::~Chip8()
 {
     file->close();
+}
+
+Chip8::pixel::pixel() {}
+
+Chip8::pixel::pixel(int x, int y)
+{
+    on_bit = 0;
+
+    rect.h = PIXEL_SIZE;
+    rect.w = PIXEL_SIZE;
+    rect.x = x;
+    rect.y = y;
+}
+
+void Chip8::pixel::on()
+{
+    on_bit = 1;
+}
+
+void Chip8::pixel::off()
+{
+    on_bit = 0;
+}
+
+bool Chip8::pixel::is_on()
+{
+    return on_bit;
 }

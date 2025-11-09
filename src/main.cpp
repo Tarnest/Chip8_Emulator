@@ -44,7 +44,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     *  
     */
     
-    chip8 = std::make_shared<Chip8>(path);
+    chip8 = std::make_shared<Chip8>(path, renderer);
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
 }
