@@ -57,13 +57,15 @@ bool Chip8::find_bit(uint8_t &byte, int bit)
     
     if (bit == 0)
     {
-        return byte << increment_size;
+        return byte >> increment_size;
     }
 
-    int narrowed_bit = byte << increment_size;
-    int subtraction_bit = byte << increment_size + 1;
+    int narrowed_bit = (byte >> increment_size) << increment_size;
+    int subtraction_bit = (byte >> increment_size + 1) << increment_size + 1;
     
-    return narrowed_bit - subtraction_bit;
+    int result = (narrowed_bit - subtraction_bit) >> increment_size;
+
+    return result;
 }
 
 void Chip8::clear_screen()
@@ -128,28 +130,48 @@ void Chip8::display(int x, int y, int N)
                 break;
             }
             
-            pixel current_pixel = pixels[x_coord][y_coord];
+            pixel *current_pixel = &pixels[x_coord][y_coord];
             bool current_bit = find_bit(current_byte, j);
 
-            if (current_pixel.is_on() && current_bit)
+            if (current_pixel->is_on() && current_bit)
             {
-                current_pixel.off();
-                SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE); // black
-                SDL_RenderFillRect(_renderer, &current_pixel.rect);
+                current_pixel->off();
+                //SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE); // black
+                //SDL_RenderFillRect(_renderer, &current_pixel.rect);
 
                 registers[0xF] = 1;
             } 
-            else if (!current_pixel.is_on() && current_bit)
+            else if (!current_pixel->is_on() && current_bit)
             {
-                current_pixel.on();
-                SDL_SetRenderDrawColor(_renderer, 0xFF, 0xFF, 0xFF, SDL_ALPHA_OPAQUE); // white
-                SDL_RenderFillRect(_renderer, &current_pixel.rect);
+                current_pixel->on();
+                //SDL_SetRenderDrawColor(_renderer, 0xFF, 0xFF, 0xFF, SDL_ALPHA_OPAQUE); // white
+                //SDL_RenderFillRect(_renderer, &current_pixel.rect);
             }
 
             x_coord++;
         }
 
         y_coord++;
+    }
+
+    SDL_RenderClear(_renderer);
+
+    for (int i = 0; i < SCREEN_WIDTH_PIXELS; i++)
+    {
+        for (int j = 0; j < SCREEN_HEIGHT_PIXELS; j++)
+        {
+            pixel *current_pixel = &pixels[i][j];
+            if (current_pixel->is_on())
+            {
+                SDL_SetRenderDrawColor(_renderer, 0xFF, 0xFF, 0xFF, SDL_ALPHA_OPAQUE); // white
+                SDL_RenderFillRect(_renderer, &current_pixel->rect);
+            }
+            else
+            {
+                SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE); // black
+                SDL_RenderFillRect(_renderer, &current_pixel->rect);
+            }
+        }
     }
 
     SDL_RenderPresent(_renderer);
