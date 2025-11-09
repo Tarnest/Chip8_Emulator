@@ -177,6 +177,123 @@ void Chip8::display(int x, int y, int N)
     SDL_RenderPresent(_renderer);
 }
 
+void Chip8::call_subroutine(int NNN)
+{
+    instructions.push(program_counter);
+    program_counter = NNN;
+}
+
+void Chip8::ret_subroutine()
+{
+    program_counter = instructions.top();
+    instructions.pop();
+}
+
+// 0x3XNN and 0x4XNN
+void Chip8::skip_instruction_addr(int num, int x, int NN)
+{
+    switch (num)
+    {
+        case 3:
+            if (registers[x] == NN)
+            {
+                program_counter += 2;
+            }
+            break;
+        case 4:
+            if (registers[x] != NN)
+            {
+                program_counter += 2;
+            }
+            break;
+    }
+}
+
+// 0x5XY0 and 0x9XY0
+void Chip8::skip_instuction_reg(int num, int x, int y)
+{
+    switch (num)
+    {
+        case 5:
+            if (registers[x] == registers[y])
+            {
+                program_counter += 2;
+            }
+            break;
+        case 9:
+            if (registers[x] != registers[y])
+            {
+                program_counter += 2;
+            }
+            break;
+    }
+}
+
+void Chip8::set_x_to_y(int x, int y)
+{
+    registers[x] = registers[y];
+}
+
+void Chip8::binary_or(int x, int y)
+{
+    registers[x] = registers[x] | registers[y];
+}
+
+void Chip8::binary_and(int x, int y)
+{
+    registers[x] = registers[x] & registers[y];
+}
+
+void Chip8::logical_xor(int x, int y)
+{
+    registers[x] = registers[x] ^ registers[y];
+}
+
+void Chip8::add_x_to_y(int x, int y)
+{
+    registers[x] += registers[y];
+}
+
+void Chip8::subtract_y_from_x(int x, int y)
+{
+    registers[x] -= registers[y];
+}
+
+void Chip8::subtract_x_from_y(int x, int y)
+{
+    registers[x] = registers[y] - registers[x];
+}
+
+void Chip8::shift(int x, int y, int identifier)
+{
+    // ! CONSIDER MAKING THIS CONFIGURABLE FOR OLDER SYSTEMS
+    
+    if (identifier == 0x6)
+    {
+        registers[x] >>= 1;
+    }
+
+    if (identifier == 0xE)
+    {
+        registers[x] <<= 1;
+    }
+}
+
+void Chip8::bin_dec_conversion(int x)
+{
+    
+}
+
+void Chip8::store_reg(int x)
+{
+
+}
+
+void Chip8::load_reg(int x)
+{
+
+}
+
 void Chip8::fetch()
 {
     current_instruction.at(0) = memory.at(program_counter);
@@ -201,18 +318,30 @@ void Chip8::decode_and_execute()
     switch(nibble_1)
     {
         case 0x0:
-            clear_screen();
+            switch(NNN)
+            {
+                case 0x0E0:
+                    clear_screen();
+                    break;
+                case 0x0EE:
+                    ret_subroutine();
+                    break;
+            }
             break;
         case 0x1:
             jump(NNN);
             break;
         case 0x2:
+            call_subroutine(NNN);
             break;
         case 0x3:
+            skip_instruction_addr(3, nibble_2, NN); 
             break;
         case 0x4:
+            skip_instruction_addr(4, nibble_2, NN); 
             break;
         case 0x5:
+            skip_instuction_reg(5, nibble_2, nibble_3);
             break;
         case 0x6:
             set_x(nibble_2, NN);
@@ -221,8 +350,39 @@ void Chip8::decode_and_execute()
             add_x(nibble_2, NN);
             break;
         case 0x8:
+            switch (nibble_4)
+            {
+                case 0x0:
+                    set_x_to_y(nibble_2, nibble_3);
+                    break;
+                case 0x1:
+                    binary_or(nibble_2, nibble_3);
+                    break;
+                case 0x2:
+                    binary_and(nibble_2, nibble_3);
+                    break;
+                case 0x3:
+                    logical_xor(nibble_2, nibble_3);
+                    break;
+                case 0x4:
+                    add_x_to_y(nibble_2, nibble_3);
+                    break;
+                case 0x5:
+                    subtract_y_from_x(nibble_2, nibble_3);
+                    break;
+                case 0x6:
+                    shift(nibble_2, nibble_3, nibble_4);
+                    break;
+                case 0x7:
+                    subtract_y_from_x(nibble_3, nibble_2);
+                    break;
+                case 0xE:
+                    shift(nibble_2, nibble_3, nibble_4);
+                    break;
+            }
             break;
         case 0x9:
+            skip_instuction_reg(9, nibble_2, nibble_3);
             break;
         case 0xA:
             set_index(NNN);

@@ -65,6 +65,21 @@ class Chip8
         void add_x(int x, int NN); // 0x7XNN
         void set_index(int NNN); // 0xANNN
         void display(int x, int y, int N); // 0xDXYN
+        void call_subroutine(int NNN); // 0x2NNN
+        void ret_subroutine(); // 0x00EE
+        void skip_instruction_addr(int num, int x, int NN); // 0x3XNN, 0x4XNN,
+        void skip_instuction_reg(int num, int x, int y); // 0x5XY0 and 0x9XY0
+        void set_x_to_y(int x, int y); // 0x8XY0
+        void binary_or(int x, int y); // 0x8XY1
+        void binary_and(int x, int y); // 0x8XY2
+        void logical_xor(int x, int y); // 0x8XY3
+        void add_x_to_y(int x, int y); // 0x8XY4
+        void subtract_y_from_x(int x, int y); // 0x8XY5  
+        void subtract_x_from_y(int x, int y); // 0x8XY7
+        void shift(int x, int y, int identifier); // 0x8XY6 and 0x8XYE
+        void bin_dec_conversion(int x); // 0xFX33
+        void store_reg(int x); // 0xFX55
+        void load_reg(int x); // 0xFX65
 
     public:
         void fetch();

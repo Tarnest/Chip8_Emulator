@@ -18,7 +18,7 @@
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
 
-const std::string path = "C:\\Users\\trist\\Documents\\VSCode Projects\\EmuDev\\Chip8\\rom\\IBM Logo.ch8";
+const std::string path = "C:\\Users\\trist\\Documents\\VSCode Projects\\EmuDev\\Chip8\\rom\\test_opcode.ch8";
 
 std::shared_ptr<Chip8> chip8;
 
