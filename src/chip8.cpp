@@ -67,6 +67,85 @@ bool Chip8::find_bit(uint8_t &byte, int bit)
 
     return result;
 }
+/*
+ * Chip-8 Keys -----> Modern Keys
+ *  1 2 3 C            1 2 3 4
+ *  4 5 6 D            Q W E R
+ *  7 8 9 E            A S D F
+ *  A 0 B F            Z X C V
+ */
+
+uint8_t Chip8::is_key_being_pressed()
+{
+    const bool* keyStates = SDL_GetKeyboardState(nullptr);
+
+    if (keyStates[SDL_SCANCODE_1])
+    {
+        return 1;
+    }
+    else if (keyStates[SDL_SCANCODE_2])
+    {
+        return 2;
+    }
+    else if (keyStates[SDL_SCANCODE_3])
+    {
+        return 3;
+    }
+    else if (keyStates[SDL_SCANCODE_4])
+    {
+        return 0xC;
+    }
+    else if (keyStates[SDL_SCANCODE_Q])
+    {
+        return 4;
+    }
+    else if (keyStates[SDL_SCANCODE_W])
+    {
+        return 5;
+    }
+    else if (keyStates[SDL_SCANCODE_E])
+    {
+        return 6;
+    }
+    else if (keyStates[SDL_SCANCODE_R])
+    {
+        return 0xD;
+    }
+    else if (keyStates[SDL_SCANCODE_A])
+    {
+        return 7;
+    }
+    else if (keyStates[SDL_SCANCODE_S])
+    {
+        return 8;
+    }
+    else if (keyStates[SDL_SCANCODE_D])
+    {
+        return 9;
+    }
+    else if (keyStates[SDL_SCANCODE_F])
+    {
+        return 0xE;
+    }
+    else if (keyStates[SDL_SCANCODE_Z])
+    {
+        return 0xA;
+    }
+    else if (keyStates[SDL_SCANCODE_X])
+    {
+        return 0;
+    }
+    else if (keyStates[SDL_SCANCODE_C])
+    {
+        return 0xB;
+    }
+    else if (keyStates[SDL_SCANCODE_V])
+    {
+        return 0xF;
+    }
+    
+    return -1;
+}
 
 void Chip8::clear_screen()
 {
@@ -335,6 +414,63 @@ void Chip8::add_to_index(int x)
     index_register += registers[x];
 }
 
+void Chip8::jump_with_offset(int NNN)
+{
+    // ! CONSIDER ADDING CONFIGURE OPTION
+
+    program_counter = NNN + registers[0];
+}
+
+void Chip8::random(int x, int NN)
+{
+    srand(time(0));
+
+    uint8_t random_num = rand();
+
+    registers[x] = random_num & NN;
+}
+
+void Chip8::skip_key(int x, int instruction)
+{
+    uint8_t key = is_key_being_pressed();
+
+    if (instruction == 0x9E)
+    {
+        if (key != -1 && key == registers[x])
+        {
+            program_counter += 2;
+        }
+    }
+
+    if (instruction == 0xA1)
+    {
+        if (key != registers[x])
+        {
+            program_counter += 2;
+        }
+    }
+}
+
+void Chip8::get_key(int x)
+{
+    uint8_t key = is_key_being_pressed();
+
+    if (key == -1)
+    {
+        program_counter -= 2;
+        return;
+    }
+
+    registers[x] = key;
+}
+
+void Chip8::font_char(int x)
+{
+    int start = 0x200;
+
+    index_register = start + registers[x] * 5;
+}
+
 void Chip8::fetch()
 {
     current_instruction.at(0) = memory.at(program_counter);
@@ -429,13 +565,24 @@ void Chip8::decode_and_execute()
             set_index(NNN);
             break;
         case 0xB:
+            jump_with_offset(NNN);
             break;
         case 0xC:
+            random(nibble_2, NN);
             break;
         case 0xD:
             display(nibble_2, nibble_3, nibble_4);
             break;
         case 0xE:
+            switch(NN)
+            {
+                case 0x9E:
+                    skip_key(nibble_2, NN);
+                    break;
+                case 0xA1:
+                    skip_key(nibble_2, NN);
+                    break;
+            }
             break;
         case 0xF:
             switch (NN)
@@ -451,6 +598,12 @@ void Chip8::decode_and_execute()
                     break;
                 case 0x1E:
                     add_to_index(nibble_2);
+                    break;
+                case 0x0A:
+                    get_key(nibble_2);
+                    break;
+                case 0x29:
+                    font_char(nibble_2);
                     break;
             }
             break;

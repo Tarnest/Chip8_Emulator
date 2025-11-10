@@ -59,6 +59,7 @@ class Chip8
         void load_pixels();
         void load_file();
         bool find_bit(uint8_t &byte, int bit);
+        uint8_t is_key_being_pressed();
         void clear_screen(); // 0x00E0
         void jump(int NNN); // 0x1NNN
         void set_x(int x, int NN); // 0x6XNN
@@ -81,7 +82,15 @@ class Chip8
         void store_reg(int x); // 0xFX55
         void load_reg(int x); // 0xFX65
         void add_to_index(int x); // 0xFX1E
-        
+        void jump_with_offset(int NNN); // 0xBNNN
+        void random(int x, int NN); // 0xCXNN
+        void skip_key(int x, int instruction); // EX9E and EXA1
+        void get_key(int x); // FX0A
+        void font_char(int x); // FX29
+
+        // timers
+
+
 
     public:
         void fetch();
