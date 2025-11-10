@@ -281,7 +281,31 @@ void Chip8::shift(int x, int y, int identifier)
 
 void Chip8::bin_dec_conversion(int x)
 {
-    
+    int first_digit, second_digit, third_digit;    
+    int num = registers[x];
+
+    if (num < 10)
+    {
+        first_digit = 0;
+        second_digit = 0;
+        third_digit = num;
+    } 
+    else if (num < 100)
+    {
+        first_digit = 0;
+        second_digit = (num % 100 - num % 10) / 10;
+        third_digit = num % 10;
+    } 
+    else
+    {
+        first_digit = (num - num % 100) / 100;
+        second_digit = (num % 100 - num % 10) / 10;
+        third_digit = num % 10;        
+    }
+
+    memory[index_register] = first_digit;
+    memory[index_register + 1] = second_digit;
+    memory[index_register + 2] = third_digit;
 }
 
 void Chip8::store_reg(int x)
@@ -397,6 +421,12 @@ void Chip8::decode_and_execute()
         case 0xE:
             break;
         case 0xF:
+            switch (NN)
+            {
+                case 0x33:
+                    bin_dec_conversion(nibble_2);
+                    break;
+            }
             break;
     }
 }
