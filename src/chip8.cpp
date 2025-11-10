@@ -267,41 +267,33 @@ void Chip8::subtract_x_from_y(int x, int y)
 void Chip8::shift(int x, int y, int identifier)
 {
     // ! CONSIDER MAKING THIS CONFIGURABLE FOR OLDER SYSTEMS
+    uint8_t bit;
+    uint8_t num = registers[x];
     
     if (identifier == 0x6)
     {
+        uint8_t num_sub = ((num >> 1) << 1);
+        bit = num - num_sub;
         registers[x] >>= 1;
     }
 
     if (identifier == 0xE)
     {
+        
+        bit = num >> 7;
         registers[x] <<= 1;
     }
+
+    registers[0xF] = bit;
 }
 
 void Chip8::bin_dec_conversion(int x)
-{
-    int first_digit, second_digit, third_digit;    
-    int num = registers[x];
+{ 
+    uint8_t num = registers[x];
 
-    if (num < 10)
-    {
-        first_digit = 0;
-        second_digit = 0;
-        third_digit = num;
-    } 
-    else if (num < 100)
-    {
-        first_digit = 0;
-        second_digit = (num % 100 - num % 10) / 10;
-        third_digit = num % 10;
-    } 
-    else
-    {
-        first_digit = (num - num % 100) / 100;
-        second_digit = (num % 100 - num % 10) / 10;
-        third_digit = num % 10;        
-    }
+    uint8_t first_digit = num / 100;
+    uint8_t second_digit = (num / 10) % 10;
+    uint8_t third_digit = num % 10;
 
     memory[index_register] = first_digit;
     memory[index_register + 1] = second_digit;
@@ -310,12 +302,37 @@ void Chip8::bin_dec_conversion(int x)
 
 void Chip8::store_reg(int x)
 {
-
+    // ! CONSIDER TOGGLE FOR OLDER SYSTEMS
+    
+    if (x == 0)
+    {
+        memory[index_register] = registers[x];
+        return;
+    }
+    
+    for (int i = 0; i <= x; i++)
+    {
+        memory[index_register + i] = registers[i];
+    }
 }
 
 void Chip8::load_reg(int x)
 {
+    if (x == 0)
+    {
+        registers[x] = memory[index_register];
+        return;
+    }
+    
+    for (int i = 0; i <= x; i++)
+    {
+        registers[i] = memory[index_register + i];
+    }
+}
 
+void Chip8::add_to_index(int x)
+{
+    index_register += registers[x];
 }
 
 void Chip8::fetch()
@@ -398,7 +415,7 @@ void Chip8::decode_and_execute()
                     shift(nibble_2, nibble_3, nibble_4);
                     break;
                 case 0x7:
-                    subtract_y_from_x(nibble_3, nibble_2);
+                    subtract_x_from_y(nibble_2, nibble_3);
                     break;
                 case 0xE:
                     shift(nibble_2, nibble_3, nibble_4);
@@ -425,6 +442,15 @@ void Chip8::decode_and_execute()
             {
                 case 0x33:
                     bin_dec_conversion(nibble_2);
+                    break;
+                case 0x55:
+                    store_reg(nibble_2);
+                    break;
+                case 0x65:
+                    load_reg(nibble_2);
+                    break;
+                case 0x1E:
+                    add_to_index(nibble_2);
                     break;
             }
             break;

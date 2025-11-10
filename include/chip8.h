@@ -80,6 +80,8 @@ class Chip8
         void bin_dec_conversion(int x); // 0xFX33
         void store_reg(int x); // 0xFX55
         void load_reg(int x); // 0xFX65
+        void add_to_index(int x); // 0xFX1E
+        
 
     public:
         void fetch();
