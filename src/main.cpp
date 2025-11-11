@@ -13,14 +13,20 @@
 #include <string>
 #include <memory>
 #include "chip8.h"
+#include "open_file.h"
 
 /* We will use this renderer to draw into this window every frame. */
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
 
-const std::string path = "C:\\Users\\trist\\Documents\\VSCode Projects\\EmuDev\\Chip8\\rom\\4-flags.ch8";
+std::string SelectedFile;
+std::string FilePath;
+
+// const std::string path = "C:\\Users\\trist\\Documents\\VSCode Projects\\EmuDev\\Chip8\\rom\\5-quirks.ch8";
 
 std::shared_ptr<Chip8> chip8;
+
+bool result = FALSE;
 
 /* This function runs once at startup. */
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
@@ -38,13 +44,28 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     }
     SDL_SetRenderLogicalPresentation(renderer, SDL_WINDOW_WIDTH, SDL_WINDOW_HEIGHT, SDL_LOGICAL_PRESENTATION_LETTERBOX);
 
+    result = openFile(SelectedFile, FilePath);    
+
+    // ! FIX THIS LATER WHEN CREATING ERROR CHECKING
+    switch (result)
+    {
+        case(TRUE):
+        {
+            printf("SELECTED FILE: %s\nFILE PATH: %s\n\n", SelectedFile.c_str(), FilePath.c_str());
+        }
+        case(FALSE):
+        {
+            printf("ENCOUNTERED AN ERROR: (%d)\n", GetLastError());
+        }
+    }
+    
     /*
     * 
     * CHIP8 PROGRAM START
     *  
     */
     
-    chip8 = std::make_shared<Chip8>(path, renderer);
+    chip8 = std::make_shared<Chip8>(FilePath, renderer);
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
 }
@@ -71,7 +92,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     float elapsedMS = (end - start) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
     
     // Cap to 60 FPS
-	// SDL_Delay(floor(16.666f - elapsedMS));
+	SDL_Delay(floor(16.666f - elapsedMS));
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
 }

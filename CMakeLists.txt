@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(chip8_emulator)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 
-set(SOURCES src/main.cpp src/chip8.cpp)
+set(SOURCES src/main.cpp src/chip8.cpp src/open_file.cpp)
 
 # set the output directory for built objects.
 # This makes sure that the dynamic library goes into the build directory automatically.
