@@ -506,6 +506,24 @@ void Chip8::font_char(int x)
     index_register = start + registers[x] * 5;
 }
 
+void Chip8::set_x_to_timer(int x)
+{
+    registers[x] = delay_timer;
+}
+
+void Chip8::set_timer_to_x(int x, int instruction)
+{
+    switch (instruction)
+    {
+        case 0x15:
+            delay_timer = registers[x];
+            break;
+        case 0x18:
+            sound_timer = registers[x];
+            break;
+    }
+}
+
 void Chip8::fetch()
 {
     current_instruction.at(0) = memory.at(program_counter);
@@ -515,7 +533,7 @@ void Chip8::fetch()
 }
 
 void Chip8::decode_and_execute()
-{
+{    
     int nibble_1 = current_instruction[0] >> 4;
     int nibble_2 = current_instruction[0] - ((current_instruction[0] >> 4) << 4);
     int nibble_3 = current_instruction[1] >> 4;
@@ -547,13 +565,14 @@ void Chip8::decode_and_execute()
             call_subroutine(NNN);
             break;
         case 0x3:
-            skip_instruction_addr(3, nibble_2, NN); 
-            break;
         case 0x4:
-            skip_instruction_addr(4, nibble_2, NN); 
+            skip_instruction_addr(nibble_1, nibble_2, NN); 
             break;
         case 0x5:
-            skip_instuction_reg(5, nibble_2, nibble_3);
+            if (nibble_4 == 0)
+            {
+                skip_instuction_reg(nibble_1, nibble_2, nibble_3);
+            }
             break;
         case 0x6:
             set_x(nibble_2, NN);
@@ -582,19 +601,20 @@ void Chip8::decode_and_execute()
                 case 0x5:
                     subtract_y_from_x(nibble_2, nibble_3);
                     break;
-                case 0x6:
-                    shift(nibble_2, nibble_3, nibble_4);
-                    break;
                 case 0x7:
                     subtract_x_from_y(nibble_2, nibble_3);
                     break;
+                case 0x6:
                 case 0xE:
                     shift(nibble_2, nibble_3, nibble_4);
                     break;
             }
             break;
         case 0x9:
-            skip_instuction_reg(9, nibble_2, nibble_3);
+            if (nibble_4 == 0)
+            {
+                skip_instuction_reg(nibble_1, nibble_2, nibble_3);
+            }
             break;
         case 0xA:
             set_index(NNN);
@@ -612,8 +632,6 @@ void Chip8::decode_and_execute()
             switch(NN)
             {
                 case 0x9E:
-                    skip_key(nibble_2, NN);
-                    break;
                 case 0xA1:
                     skip_key(nibble_2, NN);
                     break;
@@ -640,8 +658,27 @@ void Chip8::decode_and_execute()
                 case 0x29:
                     font_char(nibble_2);
                     break;
+                case 0x07:
+                    set_x_to_timer(nibble_2);
+                    break;
+                case 0x15:
+                case 0x18:
+                    set_timer_to_x(nibble_2, NN);
             }
             break;
+    }
+}
+
+void Chip8::update_timers()
+{   
+    if (delay_timer > 0)
+    {
+        delay_timer--;
+    }
+
+    if (sound_timer > 0)
+    {
+        sound_timer--;
     }
 }
 

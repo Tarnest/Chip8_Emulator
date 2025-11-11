@@ -89,12 +89,13 @@ class Chip8
         void font_char(int x); // FX29
 
         // timers
-
-
+        void set_x_to_timer(int x); // 0xFX07
+        void set_timer_to_x(int x, int instruction); // 0xFX15 and 0xFX18
 
     public:
         void fetch();
         void decode_and_execute();
+        void update_timers();
         Chip8(const std::string &path, SDL_Renderer *_new_renderer);
         ~Chip8();
 };

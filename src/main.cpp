@@ -6,12 +6,16 @@
 #define SDL_WINDOW_WIDTH (BLOCK_SIZE_IN_PIXELS * CHIP8_WIDTH)
 #define SDL_WINDOW_HEIGHT (BLOCK_SIZE_IN_PIXELS * CHIP8_HEIGHT)
 
+#define EMULATION_SPEED 700 // Hz
+#define EMULATION_SPEED_TIMER 60 // Hz
+
 #define SDL_MAIN_USE_CALLBACKS 1  /* use the callbacks instead of main() */
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
 #include <string>
 #include <memory>
+#include <chrono>
 #include "chip8.h"
 #include "open_file.h"
 
@@ -21,6 +25,8 @@ static SDL_Renderer *renderer = NULL;
 
 std::string SelectedFile;
 std::string FilePath;
+
+auto last_cycle_time = std::chrono::high_resolution_clock::now();
 
 // const std::string path = "C:\\Users\\trist\\Documents\\VSCode Projects\\EmuDev\\Chip8\\rom\\5-quirks.ch8";
 
@@ -65,6 +71,11 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     *  
     */
     
+    if (FilePath.empty())
+    {
+        return SDL_APP_SUCCESS;
+    }
+
     chip8 = std::make_shared<Chip8>(FilePath, renderer);
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
@@ -82,17 +93,29 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 /* This function runs once per frame, and is the heart of the program. */
 SDL_AppResult SDL_AppIterate(void *appstate)
 {
-    uint64_t start = SDL_GetPerformanceCounter();
+    auto current_time = std::chrono::high_resolution_clock::now();
+    float dt = std::chrono::duration<float, std::chrono::milliseconds::period>(current_time - last_cycle_time).count();
     
-    chip8->fetch();
-
-    chip8->decode_and_execute();
-
-    uint64_t end = SDL_GetPerformanceCounter();
-    float elapsedMS = (end - start) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
+    // uint64_t start = SDL_GetPerformanceCounter();
     
-    // Cap to 60 FPS
-	SDL_Delay(floor(16.666f - elapsedMS));
+    if (dt > (1000.0f / EMULATION_SPEED))
+    {
+        last_cycle_time = current_time;
+        
+        chip8->fetch();
+
+        chip8->decode_and_execute();
+    }
+
+    if (dt > (1000.0f / EMULATION_SPEED_TIMER))
+    {
+        chip8->update_timers();
+    }
+    // uint64_t end = SDL_GetPerformanceCounter();
+    // float elapsedMS = (end - start) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
+    
+    // Cap to 60 FPS (16.666f)
+	// SDL_Delay(floor((1000.0f / 700.0f) - elapsedMS)); // 400 instructions / sec
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
 }
