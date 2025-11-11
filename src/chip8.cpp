@@ -346,9 +346,12 @@ void Chip8::add_x_to_y(int x, int y)
 
 void Chip8::subtract_y_from_x(int x, int y)
 {
-    uint8_t result = registers[x] - registers[y];
+    uint8_t temp_x = registers[x];
+    uint8_t temp_y = registers[y];
 
-    if (registers[x] >= registers[y])
+    registers[x] = registers[x] - registers[y];
+
+    if (temp_x >= temp_y)
     {
         registers[0xF] = 1;
     }
@@ -356,15 +359,16 @@ void Chip8::subtract_y_from_x(int x, int y)
     {
         registers[0xF] = 0;
     }
-
-    registers[x] = result;
 }
 
 void Chip8::subtract_x_from_y(int x, int y)
 {
-    uint8_t result = registers[y] - registers[x];
+    uint8_t temp_x = registers[x];
+    uint8_t temp_y = registers[y];
+
+    registers[x] = registers[y] - registers[x];
     
-    if (registers[y] >= registers[x])
+    if (temp_y >= temp_x)
     {
         registers[0xF] = 1; // doesn't borrow
     }
@@ -372,8 +376,6 @@ void Chip8::subtract_x_from_y(int x, int y)
     {
         registers[0xF] = 0;
     }
-
-    registers[x] = result;
 }
 
 void Chip8::shift(int x, int y, int identifier)
