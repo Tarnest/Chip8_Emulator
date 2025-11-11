@@ -18,7 +18,7 @@
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
 
-const std::string path = "C:\\Users\\trist\\Documents\\VSCode Projects\\EmuDev\\Chip8\\rom\\Tetris [Fran Dachille, 1991].ch8";
+const std::string path = "C:\\Users\\trist\\Documents\\VSCode Projects\\EmuDev\\Chip8\\rom\\4-flags.ch8";
 
 std::shared_ptr<Chip8> chip8;
 
@@ -71,7 +71,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     float elapsedMS = (end - start) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
     
     // Cap to 60 FPS
-	SDL_Delay(floor(16.666f - elapsedMS));
+	// SDL_Delay(floor(16.666f - elapsedMS));
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
 }
